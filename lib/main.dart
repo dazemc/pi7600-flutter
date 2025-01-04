@@ -11,11 +11,18 @@ void main() {
   runApp(MainApp());
 }
 
-class MainApp extends StatelessWidget {
-  MainApp({super.key});
+class MainApp extends StatefulWidget {
+  const MainApp({super.key});
 
+  @override
+  MainAppState createState() => MainAppState();
+}
+
+class MainAppState extends State<MainApp> {
   final url = Uri.parse('http://192.168.0.186:8000/info');
   final urlSMS = Uri.parse('http://192.168.0.186:8000/sms?msg_query=ALL');
+
+  List<SMS> smsList = [];
 
   Future<Info> fetchInfo() async {
     final response = await http.get(url);
@@ -29,9 +36,59 @@ class MainApp extends StatelessWidget {
     return jsonList.map((json) => SMS.fromJson(json)).toList();
   }
 
-  Future<List<SMS>> getSMS() async {
+  Future<void> getSMS() async {
     List<SMS> smsResponse = await fetchSMS();
-    return smsResponse;
+    setState(() {
+      smsList.clear();
+      smsList.addAll(smsResponse);
+
+      Map<String, List<SMS>> groupedSMS = {};
+      for (var sms in smsList) {
+        final originatingAddress = sms.originatingAddress ?? 'Unknown';
+        if (!groupedSMS.containsKey(originatingAddress)) {
+          groupedSMS[originatingAddress] = [];
+        }
+        groupedSMS[originatingAddress]!.add(sms);
+      }
+
+      Map<String, List<SMS>> finalGroupedSMS = {};
+      groupedSMS.forEach((address, smsGroup) {
+        smsGroup.sort((a, b) => a.time.compareTo(b.time));
+        List<SMS> mergedMessages = [];
+        SMS? previousMessage;
+
+        for (var sms in smsGroup) {
+          if (previousMessage != null) {
+            final previousTime = DateTime.parse(
+                '${previousMessage.date} ${previousMessage.time}');
+            final currentTime = DateTime.parse('${sms.date} ${sms.time}');
+            final timeDifference =
+                currentTime.difference(previousTime).inSeconds;
+            if (timeDifference <= 10) {
+              previousMessage = SMS(
+                idx: previousMessage.contents,
+                contents: previousMessage.contents + sms.contents,
+                originatingAddress: sms.originatingAddress,
+                destinationAddress: sms.destinationAddress,
+                time: previousMessage.time,
+                date: previousMessage.date,
+                type: sms.type,
+              );
+            } else {
+              mergedMessages.add(previousMessage);
+              previousMessage = sms;
+            }
+          } else {
+            previousMessage = sms;
+          }
+        }
+        if (previousMessage != null) {
+          mergedMessages.add(previousMessage);
+        }
+        finalGroupedSMS[address] = mergedMessages;
+      });
+      smsList = finalGroupedSMS.values.expand((x) => x).toList();
+    });
   }
 
   Future<Info> getInfo() async {
@@ -39,10 +96,14 @@ class MainApp extends StatelessWidget {
     return response;
   }
 
+  @override
+  void initState() {
+    super.initState();
+    getSMS();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Future<List<SMS>> smsResponse = getSMS();
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.light,
@@ -55,93 +116,35 @@ class MainApp extends StatelessWidget {
       home: Scaffold(
         body: RefreshIndicator(
           onRefresh: getSMS,
-          child: FutureBuilder<List<SMS>>(
-              future: smsResponse,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  List<SMS> smsList = snapshot.data!;
-
-                  Map<String, List<SMS>> groupedSMS = {};
-                  for (var sms in smsList) {
-                    if (!groupedSMS.containsKey(sms.originatingAddress)) {
-                      groupedSMS[sms.originatingAddress!] = [];
-                    }
-                    groupedSMS[sms.originatingAddress]!.add(sms);
-                  }
-
-                  Map<String, List<SMS>> finalGroupedSMS = {};
-                  groupedSMS.forEach((address, smsGroup) {
-                    smsGroup.sort((a, b) => a.time.compareTo(b.time));
-                    List<SMS> mergedMessages = [];
-                    SMS? previousMessage;
-
-                    for (var sms in smsGroup) {
-                      if (previousMessage != null) {
-                        final previousTime = DateTime.parse(
-                            '${previousMessage.date} ${previousMessage.time}');
-                        final currentTime =
-                            DateTime.parse('${sms.date} ${sms.time}');
-                        final timeDifference =
-                            currentTime.difference(previousTime).inSeconds;
-                        if (timeDifference <= 10) {
-                          previousMessage = SMS(
-                            idx: previousMessage.contents,
-                            contents: previousMessage.contents + sms.contents,
-                            originatingAddress: sms.originatingAddress,
-                            destinationAddress: sms.destinationAddress,
-                            time: previousMessage.time,
-                            date: previousMessage.date,
-                            type: sms.type,
-                          );
-                        }
-                      } else {
-                        if (previousMessage != null) {
-                          mergedMessages.add(previousMessage);
-                        }
-                        previousMessage = sms;
-                      }
-                    }
-
-                    if (previousMessage != null) {
-                      mergedMessages.add(previousMessage);
-                    }
-                    finalGroupedSMS[address] = mergedMessages;
-                  });
-
-                  List<String> groupedAddresses = finalGroupedSMS.keys.toList();
-                  return ListView.builder(
-                    itemCount: groupedAddresses.length,
-                    itemBuilder: (context, index) {
-                      String address = groupedAddresses[index];
-                      List<SMS> groupSMS = finalGroupedSMS[address]!;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              address,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18),
-                            ),
+          child: smsList.isEmpty
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : ListView.builder(
+                  itemCount: smsList.length,
+                  itemBuilder: (context, index) {
+                    SMS msg = smsList[index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(
+                            msg.originatingAddress!,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
                           ),
-                          ...groupSMS.map((msg) => ListTile(
-                                title: Text(msg.contents),
-                                subtitle: Text('${msg.date} ${msg.time}'),
-                                // leading: Text(msg.originatingAddress!),
-                              ))
-                        ],
-                      );
-                      // SMS msg = smsList[index];
-                    },
-                  );
-                } else {
-                  return Center(
-                    child: Text("No SMS data."),
-                  );
-                }
-              }),
+                        ),
+                        ListTile(
+                          title: Text(msg.contents),
+                          subtitle: Text('${msg.date} ${msg.time}'),
+                          // leading: Text(msg.originatingAddress!),
+                        )
+                      ],
+                    );
+                    // SMS msg = smsList[index];
+                  },
+                ),
         ),
       ),
     );

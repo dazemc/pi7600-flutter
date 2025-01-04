@@ -13,9 +13,10 @@ class MainApp extends StatelessWidget {
   final url = Uri.parse('http://192.168.0.186:8000/info');
   final urlSMS = Uri.parse('http://192.168.0.186:8000/sms?msg_query=ALL');
 
-  Future<void> fetchData() async {
+  Future<Info> fetchInfo() async {
     final response = await http.get(url);
-    print(response.body);
+    final json = jsonDecode(response.body);
+    return Info.fromJson(json);
   }
 
   Future<List<SMS>> fetchSMS() async {
@@ -29,9 +30,14 @@ class MainApp extends StatelessWidget {
     print(smsResponse[0].contents);
   }
 
+  Future<void> printInfo() async {
+    Info response = await fetchInfo();
+    print('${response.hostname}\n${response.uname}\n${response.date}\n${response.arch}');
+  }
+
   @override
   Widget build(BuildContext context) {
-    fetchData();
+    printInfo();
     testSMS();
     return const MaterialApp(
       home: Scaffold(

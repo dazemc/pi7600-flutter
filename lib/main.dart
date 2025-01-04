@@ -25,24 +25,37 @@ class MainApp extends StatelessWidget {
     return jsonList.map((json) => SMS.fromJson(json)).toList();
   }
 
-  Future<void> testSMS() async {
+  Future<List<SMS>> getSMS() async {
     List<SMS> smsResponse = await fetchSMS();
-    print(smsResponse[0].contents);
+    return smsResponse;
   }
 
-  Future<void> printInfo() async {
+  Future<Info> getInfo() async {
     Info response = await fetchInfo();
-    print('${response.hostname}\n${response.uname}\n${response.date}\n${response.arch}');
+    return response;
   }
 
   @override
   Widget build(BuildContext context) {
-    printInfo();
-    testSMS();
-    return const MaterialApp(
+    Future<List<SMS>> smsResponse = getSMS();
+    return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
+        body: FutureBuilder<List<SMS>>(
+          future: smsResponse,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              var sms = snapshot.data![0];
+              return Center(
+                child: Text(sms.contents),
+              );
+            }
+            else {
+              return Center(
+                child: Text("No SMS data."),
+              );
+            }
+            
+          }
         ),
       ),
     );

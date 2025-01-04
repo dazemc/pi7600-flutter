@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:pi7600_flutter/models.dart';
 
 void main() {
+  if (kDebugMode) {
+    print("DEBUG BUILD");
+  }
   runApp(MainApp());
 }
 
@@ -35,10 +39,19 @@ class MainApp extends StatelessWidget {
     return response;
   }
 
+
   @override
   Widget build(BuildContext context) {
     Future<List<SMS>> smsResponse = getSMS();
     return MaterialApp(
+      theme: ThemeData(
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+      ),
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: RefreshIndicator(
           onRefresh: getSMS,

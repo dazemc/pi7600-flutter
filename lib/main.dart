@@ -54,12 +54,44 @@ class MainApp extends StatelessWidget {
                   groupedSMS[sms.originatingAddress]!.add(sms);
                 }
 
-                List<String> groupedAddresses = groupedSMS.keys.toList();
+                Map<String, List<SMS>> finalGroupedSMS = {};
+                groupedSMS.forEach((address, smsGroup){
+                  smsGroup.sort((a, b) => a.time.compareTo(b.time));
+                  List<SMS> mergedMessages = [];
+                  SMS? previousMessage; 
+
+                  for (var sms in smsGroup) {
+                    if (previousMessage != null && previousMessage.time == sms.time) {
+                      previousMessage = SMS(
+                        idx: previousMessage.contents,
+                        contents: previousMessage.contents + sms.contents,
+                        originatingAddress: sms.originatingAddress,
+                        destinationAddress: sms.destinationAddress,
+                        time: previousMessage.time,
+                        date: previousMessage.date,
+                        type: sms.type,
+                      );
+                    }
+                    else {
+                      if (previousMessage != null) {
+                        mergedMessages.add(previousMessage);
+                      }
+                      previousMessage = sms;
+                    }
+                  }
+
+                  if (previousMessage != null) {
+                    mergedMessages.add(previousMessage);
+                  }
+                  finalGroupedSMS[address] = mergedMessages;
+                });
+
+                List<String> groupedAddresses = finalGroupedSMS.keys.toList();
                 return ListView.builder(
                   itemCount: groupedAddresses.length,
                   itemBuilder: (context, index) {
                     String address = groupedAddresses[index];
-                    List<SMS> groupSMS = groupedSMS[address]!;
+                    List<SMS> groupSMS = finalGroupedSMS[address]!;
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +107,7 @@ class MainApp extends StatelessWidget {
                         ...groupSMS.map((msg) => ListTile(
                               title: Text(msg.contents),
                               subtitle: Text('${msg.date} ${msg.time}'),
-                              leading: Text(msg.originatingAddress!),
+                              // leading: Text(msg.originatingAddress!),
                             ))
                       ],
                     );

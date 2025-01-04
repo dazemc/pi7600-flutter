@@ -18,15 +18,21 @@ class MainApp extends StatelessWidget {
     print(response.body);
   }
 
-  Future<void> fetchSMS() async {
+  Future<List<SMS>> fetchSMS() async {
     final response = await http.get(urlSMS);
-    print(response.body);
+    final List<dynamic> jsonList = jsonDecode(response.body);
+    return jsonList.map((json) => SMS.fromJson(json)).toList();
+  }
+
+  Future<void> testSMS() async {
+    List<SMS> smsResponse = await fetchSMS();
+    print(smsResponse[0].contents);
   }
 
   @override
   Widget build(BuildContext context) {
     fetchData();
-    fetchSMS();
+    testSMS();
     return const MaterialApp(
       home: Scaffold(
         body: Center(

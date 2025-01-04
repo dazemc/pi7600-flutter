@@ -41,30 +41,53 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         body: FutureBuilder<List<SMS>>(
-          future: smsResponse,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              List<SMS> smsList = snapshot.data!;
-              return ListView.builder(
-                itemCount: smsList.length,
-                itemBuilder: (context, index) {
-                  SMS msg = smsList[index];
-                  return ListTile(
-                    title: Text(msg.contents),
-                    subtitle: Text('${msg.date} ${msg.time}'),
-                    leading: Text(msg.originatingAddress!),
-                  );
-                },
-              );
-            }
-            else {
-              return Center(
-                child: Text("No SMS data."),
-              );
-            }
-            
-          }
-        ),
+            future: smsResponse,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<SMS> smsList = snapshot.data!;
+
+                Map<String, List<SMS>> groupedSMS = {};
+                for (var sms in smsList) {
+                  if (!groupedSMS.containsKey(sms.originatingAddress)) {
+                    groupedSMS[sms.originatingAddress!] = [];
+                  }
+                  groupedSMS[sms.originatingAddress]!.add(sms);
+                }
+
+                List<String> groupedAddresses = groupedSMS.keys.toList();
+                return ListView.builder(
+                  itemCount: groupedAddresses.length,
+                  itemBuilder: (context, index) {
+                    String address = groupedAddresses[index];
+                    List<SMS> groupSMS = groupedSMS[address]!;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(
+                            address,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                        ),
+                        ...groupSMS.map((msg) => ListTile(
+                              title: Text(msg.contents),
+                              subtitle: Text('${msg.date} ${msg.time}'),
+                              leading: Text(msg.originatingAddress!),
+                            ))
+                      ],
+                    );
+                    // SMS msg = smsList[index];
+                  },
+                );
+              } else {
+                return Center(
+                  child: Text("No SMS data."),
+                );
+              }
+            }),
       ),
     );
   }

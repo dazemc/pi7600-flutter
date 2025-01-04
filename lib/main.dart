@@ -44,9 +44,17 @@ class MainApp extends StatelessWidget {
           future: smsResponse,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              var sms = snapshot.data![0];
-              return Center(
-                child: Text(sms.contents),
+              List<SMS> smsList = snapshot.data!;
+              return ListView.builder(
+                itemCount: smsList.length,
+                itemBuilder: (context, index) {
+                  SMS msg = smsList[index];
+                  return ListTile(
+                    title: Text(msg.contents),
+                    subtitle: Text('${msg.date} ${msg.time}'),
+                    leading: Text(msg.originatingAddress!),
+                  );
+                },
               );
             }
             else {

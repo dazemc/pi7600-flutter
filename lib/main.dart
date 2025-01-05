@@ -25,7 +25,6 @@ class MainAppState extends State<MainApp> {
   List<SMS> smsList = [];
   List<SMS> latestsmsList = [];
   Map<String, List<SMS>> finalGroupedSMS = {};
-   
 
   Future<Info> fetchInfo() async {
     final response = await http.get(url);
@@ -48,7 +47,7 @@ class MainAppState extends State<MainApp> {
 
       Map<String, SMS> latestMessage = {};
       Map<String, List<SMS>> groupedSMS = {};
-      
+
       for (var sms in smsList) {
         final originatingAddress = sms.originatingAddress ?? 'Unknown';
         if (!groupedSMS.containsKey(originatingAddress)) {
@@ -57,7 +56,6 @@ class MainAppState extends State<MainApp> {
         groupedSMS[originatingAddress]!.add(sms);
       }
 
-      
       groupedSMS.forEach((address, smsGroup) {
         smsGroup.sort((a, b) => a.time.compareTo(b.time));
         List<SMS> mergedMessages = [];
@@ -185,7 +183,8 @@ class MainAppState extends State<MainApp> {
 class SMSThread extends StatefulWidget {
   final Map<String, List<SMS>> smsGrouped;
   final String originatingAddress;
-  const SMSThread({super.key, required this.smsGrouped, required this.originatingAddress});
+  const SMSThread(
+      {super.key, required this.smsGrouped, required this.originatingAddress});
 
   @override
   SMSThreadState createState() => SMSThreadState();
@@ -195,9 +194,43 @@ class SMSThreadState extends State<SMSThread> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: Text(widget.smsGrouped[widget.originatingAddress]![0].contents),
+      theme: ThemeData(
+        brightness: Brightness.light
       ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark
+      ),
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+          body: RefreshIndicator(
+              onRefresh: () async {
+                setState(() {});
+              },
+              child: widget.smsGrouped[widget.originatingAddress]!.isEmpty
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : ListView.builder(
+                      itemCount:
+                          widget.smsGrouped[widget.originatingAddress]!.length,
+                      itemBuilder: (context, index) {
+                        SMS msg = widget
+                            .smsGrouped[widget.originatingAddress]![index];
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: ListTile(
+                                title: Text(msg.contents),
+                                subtitle: Text('${msg.date} ${msg.time}'),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ))),
     );
   }
 }

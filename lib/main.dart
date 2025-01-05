@@ -170,6 +170,7 @@ class MainAppState extends State<MainApp> {
                                 builder: (context) => SMSThread(
                                   smsGrouped: finalGroupedSMS,
                                   originatingAddress: msg.originatingAddress!,
+                                  callback: getSMS,
                                 ),
                               ),
                             ),
@@ -188,8 +189,9 @@ class MainAppState extends State<MainApp> {
 class SMSThread extends StatefulWidget {
   final Map<String, List<SMS>> smsGrouped;
   final String originatingAddress;
+  final void Function() callback;
   const SMSThread(
-      {super.key, required this.smsGrouped, required this.originatingAddress});
+      {super.key, required this.smsGrouped, required this.originatingAddress, required this.callback});
 
   @override
   SMSThreadState createState() => SMSThreadState();
@@ -198,7 +200,7 @@ class SMSThread extends StatefulWidget {
 class SMSThreadState extends State<SMSThread> {
   @override
   Widget build(BuildContext context) {
-    print(widget.smsGrouped[widget.originatingAddress]!);
+    // print(widget.smsGrouped[widget.originatingAddress]!);
     return MaterialApp(
       theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),
@@ -207,7 +209,9 @@ class SMSThreadState extends State<SMSThread> {
       home: Scaffold(
         body: RefreshIndicator(
           onRefresh: () async {
-            setState(() {});
+            setState(() {
+              widget.callback();
+            });
           },
           child: widget.smsGrouped[widget.originatingAddress]!.isEmpty
               ? Center(

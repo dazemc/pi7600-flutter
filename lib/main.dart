@@ -23,6 +23,9 @@ class MainAppState extends State<MainApp> {
   final urlSMS = Uri.parse('http://192.168.0.186:8000/sms?msg_query=ALL');
 
   List<SMS> smsList = [];
+  List<SMS> latestsmsList = [];
+  Map<String, List<SMS>> finalGroupedSMS = {};
+   
 
   Future<Info> fetchInfo() async {
     final response = await http.get(url);
@@ -41,8 +44,11 @@ class MainAppState extends State<MainApp> {
     setState(() {
       smsList.clear();
       smsList.addAll(smsResponse);
+      latestsmsList.clear();
 
+      Map<String, SMS> latestMessage = {};
       Map<String, List<SMS>> groupedSMS = {};
+      
       for (var sms in smsList) {
         final originatingAddress = sms.originatingAddress ?? 'Unknown';
         if (!groupedSMS.containsKey(originatingAddress)) {
@@ -51,13 +57,14 @@ class MainAppState extends State<MainApp> {
         groupedSMS[originatingAddress]!.add(sms);
       }
 
-      Map<String, List<SMS>> finalGroupedSMS = {};
+      
       groupedSMS.forEach((address, smsGroup) {
         smsGroup.sort((a, b) => a.time.compareTo(b.time));
         List<SMS> mergedMessages = [];
         SMS? previousMessage;
 
         for (var sms in smsGroup) {
+          latestMessage[address] = sms;
           if (previousMessage != null) {
             final previousTime = DateTime.parse(
                 '${previousMessage.date} ${previousMessage.time}');
@@ -88,6 +95,7 @@ class MainAppState extends State<MainApp> {
         finalGroupedSMS[address] = mergedMessages;
       });
       smsList = finalGroupedSMS.values.expand((x) => x).toList();
+      latestsmsList = latestMessage.values.toList();
     });
   }
 
@@ -116,36 +124,79 @@ class MainAppState extends State<MainApp> {
       home: Scaffold(
         body: RefreshIndicator(
           onRefresh: getSMS,
-          child: smsList.isEmpty
+          child: latestsmsList.isEmpty
               ? Center(
                   child: CircularProgressIndicator(),
                 )
               : ListView.builder(
-                  itemCount: smsList.length,
+                  itemCount: latestsmsList.length,
                   itemBuilder: (context, index) {
-                    SMS msg = smsList[index];
+                    // SMS msg = smsList[index];
+                    SMS msg = latestsmsList[index];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Padding(
+                        //   padding: const EdgeInsets.all(8.0),
+                        //   child: Text(
+                        //     msg.originatingAddress!,
+                        //     style: TextStyle(
+                        //         fontWeight: FontWeight.bold, fontSize: 18),
+                        //   ),
+                        // ),
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Text(
-                            msg.originatingAddress!,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18),
+                          padding: const EdgeInsets.all(8.0),
+                          child: ListTile(
+                            subtitle: Text(msg.contents),
+                            title: Text(
+                              msg.originatingAddress!,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            leading: Icon(
+                              Icons.contacts,
+                              color: Colors.grey,
+                            ), // Icon
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SMSThread(
+                                  smsGrouped: finalGroupedSMS,
+                                  originatingAddress: msg.originatingAddress!,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        ListTile(
-                          title: Text(msg.contents),
-                          subtitle: Text('${msg.date} ${msg.time}'),
-                          // leading: Text(msg.originatingAddress!),
-                        )
                       ],
                     );
                     // SMS msg = smsList[index];
                   },
                 ),
         ),
+      ),
+    );
+  }
+}
+
+class SMSThread extends StatefulWidget {
+  final Map<String, List<SMS>> smsGrouped;
+  final String originatingAddress;
+  const SMSThread({super.key, required this.smsGrouped, required this.originatingAddress});
+
+  @override
+  SMSThreadState createState() => SMSThreadState();
+}
+
+class SMSThreadState extends State<SMSThread> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Text(widget.smsGrouped[widget.originatingAddress]![0].contents),
       ),
     );
   }

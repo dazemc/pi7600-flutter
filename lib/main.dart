@@ -78,7 +78,7 @@ class MainAppState extends State<MainApp> {
                 currentTime.difference(previousTime).inSeconds;
             if (timeDifference <= 10) {
               previousMessage = SMS(
-                idx: previousMessage.contents,
+                idx: previousMessage.idx,
                 contents: previousMessage.contents + sms.contents,
                 originatingAddress: sms.originatingAddress,
                 destinationAddress: sms.destinationAddress,
@@ -230,8 +230,8 @@ class SMSThreadState extends State<SMSThread> {
                         Padding(
                           padding: EdgeInsets.all(8.0),
                           child: ListTile(
-                            title: Text(msg.contents),
-                            subtitle: Text('${msg.date} ${msg.time}'),
+                            title: Text(msg.contents, textAlign: msg.type == "SENT" ? TextAlign.right : TextAlign.left,),
+                            subtitle: Text('${msg.date} ${msg.time}', textAlign: msg.type == "SENT" ? TextAlign.right : TextAlign.left,),
                           ),
                         ),
                       ],

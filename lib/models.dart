@@ -1,8 +1,8 @@
 class SMS {
-  final String? id;
+  final int? id;
   final String idx;
   final String type;
-  final String? originatingAddress;
+  String? originatingAddress;
   final String? destinationAddress;
   final String date;
   final String time;
@@ -10,7 +10,7 @@ class SMS {
   final bool? isSimMemory;
   final bool? isSent;
 
-  const SMS({
+  SMS({
     this.id,
     required this.idx,
     required this.type,

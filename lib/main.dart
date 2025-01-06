@@ -50,7 +50,8 @@ class MainAppState extends State<MainApp> {
       Map<String, List<SMS>> groupedSMS = {};
 
       for (var sms in smsList) {
-        final originatingAddress = sms.originatingAddress ?? 'Unknown';
+        sms.originatingAddress ??= sms.destinationAddress; // this groups sent messages to the right thread
+        final originatingAddress = sms.originatingAddress!;
         if (!groupedSMS.containsKey(originatingAddress)) {
           groupedSMS[originatingAddress] = [];
         }

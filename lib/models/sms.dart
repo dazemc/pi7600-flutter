@@ -2,7 +2,7 @@ class SMS {
   final int? id;
   final String idx;
   final String type;
-  String? originatingAddress;
+  final String? originatingAddress;
   final String? destinationAddress;
   final String date;
   final String time;
@@ -10,7 +10,7 @@ class SMS {
   final bool? isSimMemory;
   final bool? isSent;
 
-  SMS({
+  const SMS({
     this.id,
     required this.idx,
     required this.type,
@@ -25,12 +25,15 @@ class SMS {
 
   // Factory constructor to map JSON keys to class fields
   factory SMS.fromJson(Map<String, dynamic> json) {
+    String? originatingAddress = json['message_originating_address'];
+    String? destinationAddress = json['message_destination_address'];
+    originatingAddress ??= destinationAddress;
     return SMS(
       id: json['id'],
       idx: json['message_index'] ?? '',
       type: json['message_type'] ?? '',
-      originatingAddress: json['message_originating_address'],
-      destinationAddress: json['message_destination_address'],
+      originatingAddress: originatingAddress,
+      destinationAddress: destinationAddress,
       date: json['message_date'] ?? '',
       time: json['message_time'] ?? '',
       contents: json['message_contents'] ?? '',

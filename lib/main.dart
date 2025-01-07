@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'models/sms.dart';
 import 'services/sms_api_service.dart';
 
@@ -193,6 +194,33 @@ class SMSThread extends StatefulWidget {
 
 class SMSThreadState extends State<SMSThread> {
   final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      final double maxScroll = _scrollController.position.maxScrollExtent;
+      final double viewportHeight =
+          _scrollController.position.viewportDimension * 0.5;
+
+      if (_scrollController.position.pixels < maxScroll) {
+        _scrollController.jumpTo(maxScroll + viewportHeight);
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,6 +267,7 @@ class SMSThreadState extends State<SMSThread> {
                         child: CircularProgressIndicator(),
                       )
                     : ListView.builder(
+                        controller: _scrollController,
                         itemCount: widget
                             .smsGrouped[widget.originatingAddress]!.length,
                         itemBuilder: (context, index) {

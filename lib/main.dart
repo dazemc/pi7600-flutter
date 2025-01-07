@@ -23,15 +23,14 @@ class MainAppState extends State<MainApp> {
   Map<String, List<SMS>> finalGroupedSMS = {};
 
   Future<void> getSMS() async {
+    Map<String, SMS> latestMessage = {};
+    Map<String, List<SMS>> groupedSMS = {};
     List<SMS> smsResponse = await fetchSMS();
     setState(() {
       smsList.clear();
       smsList.addAll(smsResponse);
       latestsmsList.clear();
       finalGroupedSMS.clear();
-
-      Map<String, SMS> latestMessage = {};
-      Map<String, List<SMS>> groupedSMS = {};
 
       for (var sms in smsList) {
         final originatingAddress = sms.originatingAddress!;
@@ -47,7 +46,6 @@ class MainAppState extends State<MainApp> {
         SMS? previousMessage;
 
         for (var sms in smsGroup) {
-          latestMessage[address] = sms;
           if (previousMessage != null) {
             if (previousMessage.date != sms.date) {
               mergedMessages.add(previousMessage);
@@ -90,6 +88,7 @@ class MainAppState extends State<MainApp> {
             return aTime.compareTo(bTime);
           },
         );
+        latestMessage[address] = smsGroup[smsGroup.length - 1];
       });
       smsList = finalGroupedSMS.values.expand((x) => x).toList();
       latestsmsList = latestMessage.values.toList();

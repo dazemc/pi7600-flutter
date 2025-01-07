@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'models/sms.dart';
 import 'models/info.dart';
+import 'services/sms_api_service.dart';
 
 void main() {
   if (kDebugMode) {
@@ -20,24 +21,9 @@ class MainApp extends StatefulWidget {
 }
 
 class MainAppState extends State<MainApp> {
-  final url = Uri.parse('http://192.168.0.186:8000/info');
-  final urlSMS = Uri.parse('http://192.168.0.186:8000/sms?msg_query=ALL');
-
   List<SMS> smsList = [];
   List<SMS> latestsmsList = [];
   Map<String, List<SMS>> finalGroupedSMS = {};
-
-  Future<Info> fetchInfo() async {
-    final response = await http.get(url);
-    final json = jsonDecode(response.body);
-    return Info.fromJson(json);
-  }
-
-  Future<List<SMS>> fetchSMS() async {
-    final response = await http.get(urlSMS);
-    final List<dynamic> jsonList = jsonDecode(response.body);
-    return jsonList.map((json) => SMS.fromJson(json)).toList();
-  }
 
   Future<void> getSMS() async {
     List<SMS> smsResponse = await fetchSMS();
@@ -111,11 +97,6 @@ class MainAppState extends State<MainApp> {
       smsList = finalGroupedSMS.values.expand((x) => x).toList();
       latestsmsList = latestMessage.values.toList();
     });
-  }
-
-  Future<Info> getInfo() async {
-    Info response = await fetchInfo();
-    return response;
   }
 
   @override

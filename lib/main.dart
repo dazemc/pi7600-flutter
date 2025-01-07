@@ -1,9 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'models/sms.dart';
-import 'models/info.dart';
 import 'services/sms_api_service.dart';
 
 void main() {
@@ -62,7 +59,7 @@ class MainAppState extends State<MainApp> {
             final currentTime = DateTime.parse('${sms.date} ${sms.time}');
             final timeDifference =
                 currentTime.difference(previousTime).inSeconds;
-            if (timeDifference <= 10) {
+            if (timeDifference <= 1 && sms.type != "SENT") {
               previousMessage = SMS(
                 idx: previousMessage.idx,
                 contents: previousMessage.contents + sms.contents,
@@ -181,6 +178,7 @@ class SMSThread extends StatefulWidget {
   final Map<String, List<SMS>> smsGrouped;
   final String originatingAddress;
   final void Function() callback;
+
   const SMSThread(
       {super.key,
       required this.smsGrouped,
@@ -192,16 +190,20 @@ class SMSThread extends StatefulWidget {
 }
 
 class SMSThreadState extends State<SMSThread> {
+  final TextEditingController _textController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(
-                Icons.arrow_back,
-              )),
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(
+              Icons.arrow_back,
+            ),
+          ),
           title: Padding(
             padding: const EdgeInsets.symmetric(vertical: 24.0),
             child: Text(
@@ -221,62 +223,106 @@ class SMSThreadState extends State<SMSThread> {
             ),
           ),
         ),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            setState(() {
-              widget.callback();
-            });
-          },
-          child: widget.smsGrouped[widget.originatingAddress]!.isEmpty
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : ListView.builder(
-                  itemCount:
-                      widget.smsGrouped[widget.originatingAddress]!.length,
-                  itemBuilder: (context, index) {
-                    SMS msg =
-                        widget.smsGrouped[widget.originatingAddress]![index];
-                    bool isSent = msg.type == "SENT";
+        body: Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  setState(() {
+                    widget.callback();
+                  });
+                },
+                child: widget.smsGrouped[widget.originatingAddress]!.isEmpty
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : ListView.builder(
+                        itemCount: widget
+                            .smsGrouped[widget.originatingAddress]!.length,
+                        itemBuilder: (context, index) {
+                          SMS msg = widget
+                              .smsGrouped[widget.originatingAddress]![index];
+                          bool isSent = msg.type == "SENT";
 
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: isSent
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: isSent
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(50)),
-                              child: Text(
-                                msg.contents,
-                                style: const TextStyle(fontSize: 16),
-                                textAlign:
-                                    isSent ? TextAlign.right : TextAlign.left,
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Align(
+                              alignment: isSent
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Column(
+                                crossAxisAlignment: isSent
+                                    ? CrossAxisAlignment.end
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey),
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    child: Text(
+                                      msg.contents,
+                                      style: const TextStyle(fontSize: 16),
+                                      textAlign: isSent
+                                          ? TextAlign.right
+                                          : TextAlign.left,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${msg.date} ${msg.time}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                    ),
+                                    textAlign: isSent
+                                        ? TextAlign.right
+                                        : TextAlign.left,
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${msg.date} ${msg.time}',
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                              textAlign:
-                                  isSent ? TextAlign.right : TextAlign.left,
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: ListTile(
+                  contentPadding: EdgeInsets.fromLTRB(12.0, 2.0, 2.0, 4.0),
+                  title: TextField(
+                    controller: _textController,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                  ),
+                  trailing: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          final newMsg = SMS(
+                            destinationAddress: widget.originatingAddress,
+                            type: "SENT",
+                            contents: _textController.text,
+                            date:
+                                "", // server handles this for now but will need for local db
+                            time: "", // """"
+                          );
+                          postNewSMS(newMsg, widget.callback);
+                          _textController.clear();
+                          FocusScope.of(context).unfocus();
+                        });
+                      },
+                      icon: Icon(Icons.send)),
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );

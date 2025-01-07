@@ -1,6 +1,6 @@
 class SMS {
   final int? id;
-  final String idx;
+  final String? idx;
   final String type;
   final String? originatingAddress;
   final String? destinationAddress;
@@ -12,7 +12,7 @@ class SMS {
 
   const SMS({
     this.id,
-    required this.idx,
+    this.idx,
     required this.type,
     this.originatingAddress,
     this.destinationAddress,

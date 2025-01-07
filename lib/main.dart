@@ -261,7 +261,7 @@ class SMSThreadState extends State<SMSThread> {
                                         border: Border.all(color: Colors.grey),
                                         borderRadius:
                                             BorderRadius.circular(20)),
-                                    child: Text(
+                                    child: SelectableText(
                                       msg.contents,
                                       style: const TextStyle(fontSize: 16),
                                       textAlign: isSent

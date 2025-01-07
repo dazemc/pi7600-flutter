@@ -88,7 +88,8 @@ class MainAppState extends State<MainApp> {
             return aTime.compareTo(bTime);
           },
         );
-        latestMessage[address] = smsGroup[smsGroup.length - 1];
+        final SMS mostRecentMessage = smsGroup[smsGroup.length - 1];
+        latestMessage[address] = mostRecentMessage;
       });
       smsList = finalGroupedSMS.values.expand((x) => x).toList();
       latestsmsList = latestMessage.values.toList();
@@ -137,7 +138,9 @@ class MainAppState extends State<MainApp> {
                             padding:
                                 const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
                             child: ListTile(
-                              subtitle: Text(msg.contents),
+                              subtitle: msg.type == "SENT"
+                                  ? Text('You: ${msg.contents}')
+                                  : Text(msg.contents),
                               title: Text(
                                 msg.originatingAddress!,
                                 style: TextStyle(

@@ -200,10 +200,10 @@ class SMSThreadState extends State<SMSThread> {
     if (_scrollController.hasClients) {
       final double maxScroll = _scrollController.position.maxScrollExtent;
       final double viewportHeight =
-          _scrollController.position.viewportDimension * 0.5;
+          _scrollController.position.viewportDimension;
 
       if (_scrollController.position.pixels < maxScroll) {
-        _scrollController.jumpTo(maxScroll + viewportHeight);
+        _scrollController.jumpTo(maxScroll + viewportHeight + 147);
       }
     }
   }
@@ -274,7 +274,6 @@ class SMSThreadState extends State<SMSThread> {
                           SMS msg = widget
                               .smsGrouped[widget.originatingAddress]![index];
                           bool isSent = msg.type == "SENT";
-
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Align(
@@ -348,6 +347,7 @@ class SMSThreadState extends State<SMSThread> {
                           _textController.clear();
                           FocusScope.of(context).unfocus();
                         });
+                        _scrollToBottom();
                       },
                       icon: Icon(Icons.send)),
                 ),

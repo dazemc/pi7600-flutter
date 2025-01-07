@@ -129,58 +129,67 @@ class MainAppState extends State<MainApp> {
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.light,
+        primaryColor: Colors.black,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: AppBarTheme(backgroundColor: Colors.white),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
+        primaryColor: Colors.white,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: AppBarTheme(backgroundColor: Colors.black),
       ),
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: RefreshIndicator(
-          onRefresh: getSMS,
-          child: latestsmsList.isEmpty
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : ListView.builder(
-                  itemCount: latestsmsList.length,
-                  itemBuilder: (context, index) {
-                    SMS msg = latestsmsList[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ListTile(
-                            subtitle: Text(msg.contents),
-                            title: Text(
-                              msg.originatingAddress!,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                decoration: TextDecoration.underline,
+      home: SafeArea(
+        child: Scaffold(
+          body: RefreshIndicator(
+            onRefresh: getSMS,
+            child: latestsmsList.isEmpty
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : ListView.builder(
+                    itemCount: latestsmsList.length,
+                    itemBuilder: (context, index) {
+                      SMS msg = latestsmsList[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
+                            child: ListTile(
+                              subtitle: Text(msg.contents),
+                              title: Text(
+                                msg.originatingAddress!,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
-                            ),
-                            leading: Icon(
-                              Icons.contacts,
-                              color: Colors.grey,
-                            ), // Icon
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SMSThread(
-                                  smsGrouped: finalGroupedSMS,
-                                  originatingAddress: msg.originatingAddress!,
-                                  callback: getSMS,
+                              leading: Icon(
+                                Icons.contacts,
+                                color: Colors.grey,
+                              ), // Icon
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SMSThread(
+                                    smsGrouped: finalGroupedSMS,
+                                    originatingAddress: msg.originatingAddress!,
+                                    callback: getSMS,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
         ),
       ),
     );
@@ -192,7 +201,10 @@ class SMSThread extends StatefulWidget {
   final String originatingAddress;
   final void Function() callback;
   const SMSThread(
-      {super.key, required this.smsGrouped, required this.originatingAddress, required this.callback});
+      {super.key,
+      required this.smsGrouped,
+      required this.originatingAddress,
+      required this.callback});
 
   @override
   SMSThreadState createState() => SMSThreadState();
@@ -201,13 +213,33 @@ class SMSThread extends StatefulWidget {
 class SMSThreadState extends State<SMSThread> {
   @override
   Widget build(BuildContext context) {
-    // print(widget.smsGrouped[widget.originatingAddress]!);
-    return MaterialApp(
-      theme: ThemeData(brightness: Brightness.light),
-      darkTheme: ThemeData(brightness: Brightness.dark),
-      themeMode: ThemeMode.system,
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(
+                Icons.arrow_back,
+              )),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Text(
+              widget.originatingAddress,
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0),
+            child: Container(
+              height: 1.0,
+              color: Colors.grey,
+            ),
+          ),
+        ),
         body: RefreshIndicator(
           onRefresh: () async {
             setState(() {
@@ -224,17 +256,43 @@ class SMSThreadState extends State<SMSThread> {
                   itemBuilder: (context, index) {
                     SMS msg =
                         widget.smsGrouped[widget.originatingAddress]![index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: ListTile(
-                            title: Text(msg.contents, textAlign: msg.type == "SENT" ? TextAlign.right : TextAlign.left,),
-                            subtitle: Text('${msg.date} ${msg.time}', textAlign: msg.type == "SENT" ? TextAlign.right : TextAlign.left,),
-                          ),
+                    bool isSent = msg.type == "SENT";
+
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: isSent
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Column(
+                          crossAxisAlignment: isSent
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(50)),
+                              child: Text(
+                                msg.contents,
+                                style: const TextStyle(fontSize: 16),
+                                textAlign:
+                                    isSent ? TextAlign.right : TextAlign.left,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${msg.date} ${msg.time}',
+                              style: TextStyle(
+                                fontSize: 12,
+                              ),
+                              textAlign:
+                                  isSent ? TextAlign.right : TextAlign.left,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     );
                   },
                 ),

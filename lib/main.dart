@@ -23,6 +23,19 @@ class MainAppState extends State<MainApp> {
   List<SMS> latestsmsList = [];
   Map<String, List<SMS>> finalGroupedSMS = {};
 
+  String getMessagePreview(SMS msg) {
+    String finalMessage = "";
+    if (msg.type == "SENT") {
+      finalMessage = "You: ";
+    }
+    if (msg.contents.length > 100) {
+      finalMessage = '$finalMessage${msg.contents.substring(0, 100)}...';
+    } else {
+      finalMessage += msg.contents;
+    }
+    return finalMessage;
+  }
+
   Future<void> getSMS() async {
     Map<String, SMS> latestMessage = {};
     Map<String, List<SMS>> groupedSMS = {};
@@ -139,9 +152,9 @@ class MainAppState extends State<MainApp> {
                             padding:
                                 const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
                             child: ListTile(
-                              subtitle: msg.type == "SENT"
-                                  ? Text('You: ${msg.contents}')
-                                  : Text(msg.contents),
+                              subtitle: Text(
+                                getMessagePreview(msg),
+                              ),
                               title: Text(
                                 msg.originatingAddress!,
                                 style: TextStyle(

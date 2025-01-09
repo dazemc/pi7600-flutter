@@ -1,16 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
-
 import '../models/sms.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-final client = HttpClient();
 final urlSMS = Uri.parse('https://pi.daazed.dev/sms?msg_query=ALL');
 final urlSendSMS = Uri.parse('https://pi.daazed.dev/sms');
-
-
 
 Future<List<SMS>> fetchSMS() async {
   final response = await http.get(urlSMS);
@@ -41,10 +35,11 @@ Future<SMS?> postNewSMS(SMS newMessage, Function() callback) async {
     }
     final finalResponse = jsonDecode(response.body);
     callback();
-    return SMS.fromJson(finalResponse);   
-  } 
+    return SMS.fromJson(finalResponse);
+  }
   if (kDebugMode) {
-    print("Error sending message:\nstatus code: ${response.statusCode}\nbody: ${response.body}");
+    print(
+        "Error sending message:\nstatus code: ${response.statusCode}\nbody: ${response.body}");
   }
   return null;
 }

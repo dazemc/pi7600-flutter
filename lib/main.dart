@@ -331,6 +331,7 @@ class SMSThreadState extends State<SMSThread> {
                     maxLines: null,
                     keyboardType: TextInputType.multiline,
                     textInputAction: TextInputAction.newline,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
                   trailing: IconButton(
                       onPressed: () {

@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/sms.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-final urlSMS = Uri.parse('http://192.168.0.186:8000/sms?msg_query=ALL');
-final urlSendSMS = Uri.parse('http://192.168.0.186:8000/sms');
+final client = HttpClient();
+final urlSMS = Uri.parse('https://pi.daazed.dev/sms?msg_query=ALL');
+final urlSendSMS = Uri.parse('https://pi.daazed.dev/sms');
+
+
 
 Future<List<SMS>> fetchSMS() async {
   final response = await http.get(urlSMS);
@@ -13,25 +18,33 @@ Future<List<SMS>> fetchSMS() async {
   return jsonList.map((json) => SMS.fromJson(json)).toList();
 }
 
-Future<SMS> postNewSMS(SMS newMessage, Function() callback) async {
+Future<SMS?> postNewSMS(SMS newMessage, Function() callback) async {
   final Map<String, dynamic> newMsgJson = {
     "number": newMessage.destinationAddress,
     "msg": newMessage.contents,
   };
-  final response = await http.post(
+  var response = await http.post(
     urlSendSMS,
     headers: {
       "Content-Type": "application/json",
     },
-    body: jsonEncode(newMsgJson) 
+    body: jsonEncode(newMsgJson),
   );
-  if (response.statusCode == 200) {
+  if (response.statusCode == 301 || response.statusCode == 302) {
+    if (kDebugMode) {
+      print("/sms Redirect: ${response.headers['location']}");
+    }
+  }
+  if (response.statusCode == 200 || response.statusCode == 201) {
     if (kDebugMode) {
       print("Sent new message successfully");
     }
-    
+    final finalResponse = jsonDecode(response.body);
+    callback();
+    return SMS.fromJson(finalResponse);   
+  } 
+  if (kDebugMode) {
+    print("Error sending message:\nstatus code: ${response.statusCode}\nbody: ${response.body}");
   }
-  final finalResponse = jsonDecode(response.body);
-  callback();
-  return SMS.fromJson(finalResponse);
+  return null;
 }

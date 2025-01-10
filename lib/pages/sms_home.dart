@@ -92,7 +92,12 @@ class MainApp extends StatelessWidget {
                   );
                 }
               } else {
-                return CircularProgressIndicator();
+                context.read<SMSBloc>().add(
+                      SMSLoad(),
+                    );
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
               }
             },
           ),

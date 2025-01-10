@@ -15,13 +15,13 @@ class SMSBloc extends Bloc<SMSEvent, SMSState> {
       } catch (e) {
         emit(SMSFailed(e.toString()));
       }
+      add(SMSLoad());
     });
 
     on<SMSLoad>((event, emit) async {
       emit(SMSLoading());
       try {
         final smsList = await smsApiService.fetchSMS();
-        smsApiService.getSMS();
         final smsPreviewList = smsApiService.latestsmsList;
         final smsPreviewMessages = smsApiService.smsPreviewMessages;
         final smsFinalGrouped = smsApiService.finalGroupedSMS;

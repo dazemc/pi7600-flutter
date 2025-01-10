@@ -57,12 +57,6 @@ class SmsApiService {
   Future<void> getSMS() async {
     Map<String, SMS> latestMessage = {};
     Map<String, List<SMS>> groupedSMS = {};
-    // List<SMS> smsResponse = await fetchSMS();
-    // smsList.clear();
-    // smsList.addAll(smsResponse);
-    // latestsmsList.clear();
-    // finalGroupedSMS.clear();
-    // smsPreviewMessages.clear();
 
     for (var sms in smsList) {
       final originatingAddress = sms.originatingAddress!;

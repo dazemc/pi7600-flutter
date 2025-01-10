@@ -1,5 +1,19 @@
-abstract class SMSEvent {}
+import 'package:equatable/equatable.dart';
+import '../models/sms.dart';
 
-class LoadSMS extends SMSEvent {}
+abstract class SMSEvent extends Equatable {
+  const SMSEvent();
 
-class SendSMS extends SMSEvent {}
+  @override
+  List<Object> get props => [];
+}
+
+class SMSLoad extends SMSEvent {}
+
+class SMSSend extends SMSEvent {
+  final SMS sms;
+  const SMSSend(this.sms);
+
+  @override
+  List<Object> get props => [sms];
+}

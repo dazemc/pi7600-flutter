@@ -1,115 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pi7600_flutter/bloc/sms_bloc.dart';
+import 'package:pi7600_flutter/bloc/sms_state.dart';
+import 'package:pi7600_flutter/bloc/sms_event.dart';
 import 'sms_thread.dart';
 import '../models/sms.dart';
-import '../services/sms_api_service.dart';
 
-class MainApp extends StatefulWidget {
+class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
-  MainAppState createState() => MainAppState();
-}
-
-class MainAppState extends State<MainApp> {
-  List<SMS> smsList = [];
-  List<SMS> latestsmsList = [];
-  Map<String, List<SMS>> finalGroupedSMS = {};
-
-  String getMessagePreview(SMS msg) {
-    String finalMessage = "";
-    if (msg.type == "SENT") {
-      finalMessage = "You: ";
-    }
-    if (msg.contents.length > 100) {
-      finalMessage = '$finalMessage${msg.contents.substring(0, 100)}...';
-    } else {
-      finalMessage += msg.contents;
-    }
-    return finalMessage;
-  }
-
-  Future<void> getSMS() async {
-    Map<String, SMS> latestMessage = {};
-    Map<String, List<SMS>> groupedSMS = {};
-    List<SMS> smsResponse = await fetchSMS();
-    setState(() {
-      smsList.clear();
-      smsList.addAll(smsResponse);
-      latestsmsList.clear();
-      finalGroupedSMS.clear();
-
-      for (var sms in smsList) {
-        final originatingAddress = sms.originatingAddress!;
-        if (!groupedSMS.containsKey(originatingAddress)) {
-          groupedSMS[originatingAddress] = [];
-        }
-        groupedSMS[originatingAddress]!.add(sms);
-      }
-
-      groupedSMS.forEach((address, smsGroup) {
-        smsGroup.sort((a, b) => a.time.compareTo(b.time));
-        List<SMS> mergedMessages = [];
-        SMS? previousMessage;
-
-        for (var sms in smsGroup) {
-          if (previousMessage != null) {
-            if (previousMessage.date != sms.date) {
-              mergedMessages.add(previousMessage);
-              previousMessage = sms;
-              continue;
-            }
-            final previousTime = DateTime.parse(
-                '${previousMessage.date} ${previousMessage.time}');
-            final currentTime = DateTime.parse('${sms.date} ${sms.time}');
-            final timeDifference =
-                currentTime.difference(previousTime).inSeconds;
-            if (timeDifference <= 1 && sms.type != "SENT") {
-              previousMessage = SMS(
-                idx: previousMessage.idx,
-                contents: previousMessage.contents + sms.contents,
-                originatingAddress: sms.originatingAddress,
-                destinationAddress: sms.destinationAddress,
-                time: previousMessage.time,
-                date: previousMessage.date,
-                type: sms.type,
-              );
-            } else {
-              mergedMessages.add(previousMessage);
-              previousMessage = sms;
-            }
-          } else {
-            previousMessage = sms;
-          }
-        }
-        if (previousMessage != null) {
-          mergedMessages.add(previousMessage);
-        }
-        finalGroupedSMS[address] = mergedMessages;
-      });
-      finalGroupedSMS.forEach((address, smsGroup) {
-        smsGroup.sort(
-          (a, b) {
-            DateTime aTime = DateTime.parse('${a.date} ${a.time}');
-            DateTime bTime = DateTime.parse('${b.date} ${b.time}');
-            return aTime.compareTo(bTime);
-          },
-        );
-        final SMS mostRecentMessage = smsGroup[smsGroup.length - 1];
-        latestMessage[address] = mostRecentMessage;
-      });
-      smsList = finalGroupedSMS.values.expand((x) => x).toList();
-      latestsmsList = latestMessage.values.toList();
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getSMS();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // print("Loading SMS");
+    context.read<SMSBloc>().add(SMSLoad());
+    // print("SMS Loaded");
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.light,
@@ -127,16 +31,28 @@ class MainAppState extends State<MainApp> {
       debugShowCheckedModeBanner: false,
       home: SafeArea(
         child: Scaffold(
-          body: RefreshIndicator(
-            onRefresh: getSMS,
-            child: latestsmsList.isEmpty
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : ListView.builder(
-                    itemCount: latestsmsList.length,
+          body: BlocBuilder<SMSBloc, SMSState>(
+            builder: (context, state) {
+              if (state is SMSInitial) {
+                // print("SMSInitial");
+                return Center(child: Text('No SMS loaded.'));
+              } else if (state is SMSLoading) {
+                // print("SMSLoading");
+                return Center(child: CircularProgressIndicator());
+              } else if (state is SMSLoaded) {
+                // print("SMSLoaded");
+                if (state.smsList.isEmpty) {
+                  // print("smsList empty");
+                  return Center(
+                    child: Text('No SMS found.'),
+                  );
+                } else {
+                  // print("Buidling home page list");
+                  // print("itemCount: ${state.smsPreviewList.length}");
+                  return ListView.builder(
+                    itemCount: state.smsPreviewList.length,
                     itemBuilder: (context, index) {
-                      SMS msg = latestsmsList[index];
+                      SMS msg = state.smsPreviewList[index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -145,7 +61,7 @@ class MainAppState extends State<MainApp> {
                                 const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
                             child: ListTile(
                               subtitle: Text(
-                                getMessagePreview(msg),
+                                state.smsPreviewMessages[index],
                               ),
                               title: Text(
                                 msg.originatingAddress!,
@@ -163,9 +79,8 @@ class MainAppState extends State<MainApp> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => SMSThread(
-                                    smsGrouped: finalGroupedSMS,
+                                    smsGrouped: state.smsFinalGrouped,
                                     originatingAddress: msg.originatingAddress!,
-                                    callback: getSMS,
                                   ),
                                 ),
                               ),
@@ -174,7 +89,12 @@ class MainAppState extends State<MainApp> {
                         ],
                       );
                     },
-                  ),
+                  );
+                }
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
           ),
         ),
       ),

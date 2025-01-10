@@ -1,40 +1,35 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'sms_event.dart';
-import 'sms_state.dart';
-import '../models/sms.dart';
-
-final Uri urlSMS = Uri.parse('https://pi.daazed.dev/sms?msg_query=ALL');
-final Uri urlSendSMS = Uri.parse('https://pi.daazed.dev/sms');
+import 'package:pi7600_flutter/bloc/sms_event.dart';
+import 'package:pi7600_flutter/bloc/sms_state.dart';
+import '../services/sms_api_service.dart';
 
 class SMSBloc extends Bloc<SMSEvent, SMSState> {
-  SMSBloc() : super(SMSInital()) {
-    @override
-    Stream<SMSState> mapEventToState(SMSEvent event) async* {
-      if (event is LoadSMS) {
-        yield SMSLoading();
-        try {
-          final smsList = await _fetchSMS();
-          yield SMSLoaded(smsList);
-        } catch (e) {
-          yield SMSError(e.toString());
-          if (kDebugMode) {
-            throw Exception("/sms GET Error ${e.toString()}");
-          }
-        }
-      }
-    }
-  }
-}
+  final SmsApiService smsApiService;
 
-Future<List<SMS>> _fetchSMS() async {
-  final response = await http.get(urlSMS);
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    final List<dynamic> jsonList = jsonDecode(response.body);
-    return jsonList.map((json) => SMS.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to load SMS');
+  SMSBloc(this.smsApiService) : super(SMSInitial()) {
+    on<SMSSend>((event, emit) async {
+      emit(SMSLoading());
+      try {
+        await smsApiService.postNewSMS(event.sms);
+        emit(SMSSent(event.sms));
+      } catch (e) {
+        emit(SMSFailed(e.toString()));
+      }
+    });
+
+    on<SMSLoad>((event, emit) async {
+      emit(SMSLoading());
+      try {
+        final smsList = await smsApiService.fetchSMS();
+        smsApiService.getSMS();
+        final smsPreviewList = smsApiService.latestsmsList;
+        final smsPreviewMessages = smsApiService.smsPreviewMessages;
+        final smsFinalGrouped = smsApiService.finalGroupedSMS;
+        emit(SMSLoaded(
+            smsList, smsPreviewList, smsPreviewMessages, smsFinalGrouped));
+      } catch (e) {
+        emit(SMSError(e.toString()));
+      }
+    });
   }
 }

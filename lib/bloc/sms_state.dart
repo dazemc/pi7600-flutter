@@ -8,16 +8,37 @@ abstract class SMSState extends Equatable {
   List<Object> get props => [];
 }
 
-class SMSInital extends SMSState {}
+class SMSInitial extends SMSState {}
 
 class SMSLoading extends SMSState {}
 
 class SMSLoaded extends SMSState {
   final List<SMS> smsList;
-  const SMSLoaded(this.smsList);
+  final List<SMS> smsPreviewList;
+  final List<String> smsPreviewMessages;
+  final Map<String, List<SMS>> smsFinalGrouped;
+
+  const SMSLoaded(this.smsList, this.smsPreviewList, this.smsPreviewMessages,
+      this.smsFinalGrouped);
 
   @override
   List<Object> get props => [smsList];
+}
+
+class SMSFailed extends SMSState {
+  final String message;
+  const SMSFailed(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+class SMSSent extends SMSState {
+  final SMS sentMessageVerified;
+  const SMSSent(this.sentMessageVerified);
+
+  @override
+  List<Object> get props => [sentMessageVerified];
 }
 
 class SMSError extends SMSState {
@@ -27,3 +48,5 @@ class SMSError extends SMSState {
   @override
   List<Object> get props => [message];
 }
+
+class SMSSending extends SMSState {}

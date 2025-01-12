@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class SMS {
   final int? id;
   final String? idx;
@@ -36,6 +38,7 @@ class SMS {
     String? originatingAddress = json['message_originating_address'];
     String? destinationAddress = json['message_destination_address'];
     originatingAddress ??= destinationAddress;
+    String messageContents = encodeToUtf8(json['message_contents'] ?? '');
     return SMS(
       id: json['id'],
       idx: json['message_index'] ?? '',
@@ -44,7 +47,7 @@ class SMS {
       destinationAddress: destinationAddress,
       date: json['message_date'] ?? '',
       time: json['message_time'] ?? '',
-      contents: json['message_contents'] ?? '',
+      contents: messageContents,
       isSimMemory: json['in_sim_memory'],
       isSent: json['is_sent'],
       isPartial: json['is_partial'],
@@ -53,4 +56,9 @@ class SMS {
       partialKey: json['partial_key'],
     );
   }
+}
+
+String encodeToUtf8(String messageContents) {
+  var utf8Runes = messageContents.runes.toList();
+  return utf8.decode(utf8Runes);
 }

@@ -9,6 +9,10 @@ class SMS {
   final String contents;
   final bool? isSimMemory;
   final bool? isSent;
+  final bool isPartial;
+  final String? partialKey;
+  final int? partialIndex;
+  final int? partialCount;
 
   const SMS({
     this.id,
@@ -21,6 +25,10 @@ class SMS {
     required this.contents,
     this.isSimMemory,
     this.isSent,
+    required this.isPartial,
+    this.partialCount,
+    this.partialIndex,
+    this.partialKey,
   });
 
   // Factory constructor to map JSON keys to class fields
@@ -39,6 +47,10 @@ class SMS {
       contents: json['message_contents'] ?? '',
       isSimMemory: json['in_sim_memory'],
       isSent: json['is_sent'],
+      isPartial: json['is_partial'],
+      partialCount: json['partial_count'],
+      partialIndex: json['partial_index'],
+      partialKey: json['partial_key'],
     );
   }
 }

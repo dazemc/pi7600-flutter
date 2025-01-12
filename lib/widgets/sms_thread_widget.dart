@@ -102,6 +102,7 @@ class SMSThreadWidget extends StatelessWidget {
                       date:
                           "", // server handles this for now but will need for local db
                       time: "", // """"
+                      isPartial: false,
                     );
                     BlocProvider.of<SMSBloc>(context)
                         .add(SMSSend(newMsg));

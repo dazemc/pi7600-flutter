@@ -91,6 +91,7 @@ class SmsApiService {
               time: previousMessage.time,
               date: previousMessage.date,
               type: sms.type,
+              isPartial: false,
             );
           } else {
             mergedMessages.add(previousMessage);

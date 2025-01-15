@@ -2,17 +2,21 @@ import 'package:flutter/foundation.dart';
 import '../models/sms.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'auth_api_service.dart';
 
 class SmsApiService {
   final Uri urlSMS = Uri.parse('https://pi.daazed.dev/sms?msg_query=ALL');
   final Uri urlSendSMS = Uri.parse('https://pi.daazed.dev/sms');
+  String? token;
   List<SMS> smsList = [];
   List<SMS> latestsmsList = [];
   List<String> smsPreviewMessages = [];
   Map<String, List<SMS>> finalGroupedSMS = {};
 
   Future<List<SMS>> fetchSMS() async {
-    final response = await http.get(urlSMS);
+    await attemptLogin();
+    final response =
+        await http.get(urlSMS, headers: {'Authorization': 'Bearer $token'});
     if (response.statusCode == 200 || response.statusCode == 201) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       smsList = jsonList.map((json) => SMS.fromJson(json)).toList();
@@ -24,6 +28,7 @@ class SmsApiService {
   }
 
   Future<SMS?> postNewSMS(SMS newMessage) async {
+    await attemptLogin();
     final Map<String, dynamic> newMsgJson = {
       "number": newMessage.destinationAddress,
       "msg": newMessage.contents,

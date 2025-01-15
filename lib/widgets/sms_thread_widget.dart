@@ -11,7 +11,8 @@ class SMSThreadWidget extends StatelessWidget {
     required this.originatingAddress,
     required ScrollController scrollController,
     required TextEditingController textController,
-  }) : _scrollController = scrollController, _textController = textController;
+  })  : _scrollController = scrollController,
+        _textController = textController;
 
   final Map<String, List<SMS>> smsGrouped;
   final String originatingAddress;
@@ -47,16 +48,13 @@ class SMSThreadWidget extends StatelessWidget {
                             Container(
                               padding: EdgeInsets.all(8.0),
                               decoration: BoxDecoration(
-                                  border:
-                                      Border.all(color: Colors.grey),
-                                  borderRadius:
-                                      BorderRadius.circular(20)),
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(20)),
                               child: SelectableText(
                                 msg.contents,
                                 style: const TextStyle(fontSize: 16),
-                                textAlign: isSent
-                                    ? TextAlign.right
-                                    : TextAlign.left,
+                                textAlign:
+                                    isSent ? TextAlign.right : TextAlign.left,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -65,9 +63,8 @@ class SMSThreadWidget extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                               ),
-                              textAlign: isSent
-                                  ? TextAlign.right
-                                  : TextAlign.left,
+                              textAlign:
+                                  isSent ? TextAlign.right : TextAlign.left,
                             ),
                           ],
                         ),
@@ -84,8 +81,7 @@ class SMSThreadWidget extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: ListTile(
-              contentPadding:
-                  EdgeInsets.fromLTRB(12.0, 2.0, 2.0, 4.0),
+              contentPadding: EdgeInsets.fromLTRB(12.0, 2.0, 2.0, 4.0),
               title: TextField(
                 controller: _textController,
                 maxLines: null,
@@ -104,8 +100,7 @@ class SMSThreadWidget extends StatelessWidget {
                       time: "", // """"
                       isPartial: false,
                     );
-                    BlocProvider.of<SMSBloc>(context)
-                        .add(SMSSend(newMsg));
+                    BlocProvider.of<SMSBloc>(context).add(SMSSend(newMsg));
                     _textController.clear();
                     FocusScope.of(context).unfocus();
                   },

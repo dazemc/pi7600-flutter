@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pi7600_flutter/bloc/sms_bloc.dart';
 import 'package:pi7600_flutter/services/sms_api_service.dart';
 import 'pages/sms_home.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load();
   runApp(
     BlocProvider(
       create: (context) => SMSBloc(

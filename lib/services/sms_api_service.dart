@@ -7,16 +7,19 @@ import 'auth_api_service.dart';
 class SmsApiService {
   final Uri urlSMS = Uri.parse('https://pi.daazed.dev/sms?msg_query=ALL');
   final Uri urlSendSMS = Uri.parse('https://pi.daazed.dev/sms');
-  String? token;
   List<SMS> smsList = [];
   List<SMS> latestsmsList = [];
   List<String> smsPreviewMessages = [];
   Map<String, List<SMS>> finalGroupedSMS = {};
 
+  // /sms GET
   Future<List<SMS>> fetchSMS() async {
     await attemptLogin();
-    final response =
-        await http.get(urlSMS, headers: {'Authorization': 'Bearer $token'});
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    };
+    final response = await http.get(urlSMS, headers: headers);
     if (response.statusCode == 200 || response.statusCode == 201) {
       final List<dynamic> jsonList = jsonDecode(response.body);
       smsList = jsonList.map((json) => SMS.fromJson(json)).toList();
@@ -27,17 +30,20 @@ class SmsApiService {
     }
   }
 
+  // /sms POST
   Future<SMS?> postNewSMS(SMS newMessage) async {
     await attemptLogin();
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    };
     final Map<String, dynamic> newMsgJson = {
       "number": newMessage.destinationAddress,
       "msg": newMessage.contents,
     };
     var response = await http.post(
       urlSendSMS,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       body: jsonEncode(newMsgJson),
     );
     if (response.statusCode == 301 || response.statusCode == 302) {

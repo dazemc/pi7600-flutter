@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../models/sms.dart';
+import '../../models/sms.dart';
 
 abstract class SMSEvent extends Equatable {
   const SMSEvent();

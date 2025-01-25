@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pi7600_flutter/bloc/sms_event.dart';
-import 'package:pi7600_flutter/bloc/sms_state.dart';
-import '../services/sms_api_service.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_event.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_state.dart';
+import '../../services/sms_api_service.dart';
 
 class SMSBloc extends Bloc<SMSEvent, SMSState> {
   final SmsApiService smsApiService;

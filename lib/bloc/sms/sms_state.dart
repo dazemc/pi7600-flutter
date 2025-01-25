@@ -1,4 +1,4 @@
-import '../models/sms.dart';
+import '../../models/sms.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class SMSState extends Equatable {

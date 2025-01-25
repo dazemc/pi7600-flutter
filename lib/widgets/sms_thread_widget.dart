@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pi7600_flutter/bloc/sms_bloc.dart';
-import 'package:pi7600_flutter/bloc/sms_event.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_bloc.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_event.dart';
 import 'package:pi7600_flutter/models/sms.dart';
 
 class SMSThreadWidget extends StatelessWidget {

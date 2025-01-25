@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pi7600_flutter/bloc/sms_bloc.dart';
-import 'package:pi7600_flutter/bloc/sms_state.dart';
-import 'package:pi7600_flutter/bloc/sms_event.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_bloc.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_state.dart';
+import 'package:pi7600_flutter/bloc/sms/sms_event.dart';
 import 'sms_thread.dart';
 import '../models/sms.dart';
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class SMSHome extends StatelessWidget {
+  const SMSHome({super.key});
 
   @override
   Widget build(BuildContext context) {

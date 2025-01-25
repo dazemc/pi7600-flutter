@@ -17,7 +17,7 @@ class VideoStream extends StatefulWidget {
 }
 
 class _VideoStreamState extends State<VideoStream> {
-  final WebSocket _socket = WebSocket("ws://192.168.0.186:8000/wss/video");
+  final WebSocket _socket = WebSocket("wss://pi.daazed.dev/wss/video");
   bool _isConnected = false;
   void connect(BuildContext context) async {
     _socket.connect();

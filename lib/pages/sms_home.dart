@@ -14,94 +14,76 @@ class SMSHome extends StatelessWidget {
     // print("Loading SMS");
     context.read<SMSBloc>().add(SMSLoad());
     // print("SMS Loaded");
-    return MaterialApp(
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarTheme(backgroundColor: Colors.white),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.white,
-        scaffoldBackgroundColor: Colors.black,
-        appBarTheme: AppBarTheme(backgroundColor: Colors.black),
-      ),
-      themeMode: ThemeMode.system,
-      debugShowCheckedModeBanner: false,
-      home: SafeArea(
-        child: Scaffold(
-          body: BlocBuilder<SMSBloc, SMSState>(
-            builder: (context, state) {
-              if (state is SMSInitial) {
-                // print("SMSInitial");
-                return Center(child: Text('No SMS loaded.'));
-              } else if (state is SMSLoading) {
-                // print("SMSLoading");
-                return Center(child: CircularProgressIndicator());
-              } else if (state is SMSLoaded) {
-                // print("SMSLoaded");
-                if (state.smsList.isEmpty) {
-                  // print("smsList empty");
-                  return Center(
-                    child: Text('No SMS found.'),
-                  );
-                } else {
-                  // print("Buidling home page list");
-                  // print("itemCount: ${state.smsPreviewList.length}");
-                  return ListView.builder(
-                    itemCount: state.smsPreviewList.length,
-                    itemBuilder: (context, index) {
-                      SMS msg = state.smsPreviewList[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
-                            child: ListTile(
-                              subtitle: Text(
-                                state.smsPreviewMessages[index],
-                              ),
-                              title: Text(
-                                msg.originatingAddress!,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                              leading: Icon(
-                                Icons.contacts,
-                                color: Colors.grey,
-                              ), // Icon
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SMSThread(
-                                    smsGrouped: state.smsFinalGrouped,
-                                    originatingAddress: msg.originatingAddress!,
-                                  ),
-                                ),
+    return Scaffold(
+      body: BlocBuilder<SMSBloc, SMSState>(
+        builder: (context, state) {
+          if (state is SMSInitial) {
+            // print("SMSInitial");
+            return Center(child: Text('No SMS loaded.'));
+          } else if (state is SMSLoading) {
+            // print("SMSLoading");
+            return Center(child: CircularProgressIndicator());
+          } else if (state is SMSLoaded) {
+            // print("SMSLoaded");
+            if (state.smsList.isEmpty) {
+              // print("smsList empty");
+              return Center(
+                child: Text('No SMS found.'),
+              );
+            } else {
+              // print("Buidling home page list");
+              // print("itemCount: ${state.smsPreviewList.length}");
+              return ListView.builder(
+                itemCount: state.smsPreviewList.length,
+                itemBuilder: (context, index) {
+                  SMS msg = state.smsPreviewList[index];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
+                        child: ListTile(
+                          subtitle: Text(
+                            state.smsPreviewMessages[index],
+                          ),
+                          title: Text(
+                            msg.originatingAddress!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                          leading: Icon(
+                            Icons.contacts,
+                            color: Colors.grey,
+                          ), // Icon
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SMSThread(
+                                smsGrouped: state.smsFinalGrouped,
+                                originatingAddress: msg.originatingAddress!,
                               ),
                             ),
                           ),
-                        ],
-                      );
-                    },
+                        ),
+                      ),
+                    ],
                   );
-                }
-              } else {
-                context.read<SMSBloc>().add(
-                      SMSLoad(),
-                    );
-                return Center(
-                  child: CircularProgressIndicator(),
+                },
+              );
+            }
+          } else {
+            context.read<SMSBloc>().add(
+                  SMSLoad(),
                 );
-              }
-            },
-          ),
-        ),
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
       ),
     );
   }

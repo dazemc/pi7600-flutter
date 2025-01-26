@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pi7600_flutter/pages/sms_home.dart';
+import 'package:pi7600_flutter/pages/pi_camera.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -55,7 +56,7 @@ class Home extends StatelessWidget {
               spacing: 10.0,
               children: [
                 TextButton(
-                    onPressed: () {},
+                    onPressed: () {Navigator.push(context,MaterialPageRoute(builder: (BuildContext context) => VideoStream()));}, // TODO
                     style: ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(Colors.blueGrey)),

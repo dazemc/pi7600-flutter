@@ -13,11 +13,13 @@ Future<Info?> fetchInfo() async {
   } else {
     print('ERROR: Token invalid');
   }
+  return null;
 }
 
 Future<Info?> getInfo() async {
   Info? response = await fetchInfo();
   if (response != null) {
   return response;
-  } 
+  }
+  return null; 
 }

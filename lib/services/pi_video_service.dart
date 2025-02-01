@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
+import 'auth_api_service.dart';
 
 class WebSocket {
   // ------------------------- Members ------------------------- //
   late String url;
   WebSocketChannel? _channel;
   StreamController<bool> streamController = StreamController<bool>.broadcast();
+ 
 
   // ---------------------- Getter Setters --------------------- //
   String get getUrl {
@@ -30,8 +32,14 @@ class WebSocket {
 
   // ---------------------- Functions ----------------------- //
 
+
   /// Connects the current application to a websocket
   void connect() async {
+    //  await attemptLogin();
+    // Map<String, String> headers = {
+    //   'Authorization': 'Bearer $token',
+    //   'Content-Type': 'application/json'
+    // };
     _channel = WebSocketChannel.connect(Uri.parse(url));
   }
 

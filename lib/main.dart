@@ -4,24 +4,7 @@ import 'package:pi7600_flutter/bloc/sms/sms_bloc.dart';
 import 'package:pi7600_flutter/pages/pi_home.dart';
 import 'package:pi7600_flutter/services/sms_api_service.dart';
 import 'package:pi7600_flutter/bloc/home/home_bloc.dart';
-import 'pages/sms_home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-// void main() async {
-//   await dotenv.load();
-//   runApp(
-//     BlocProvider(
-//       create: (context) => SMSBloc(
-//         SmsApiService(),
-//       ),
-//       child: const SMSHome(),
-//     ),
-//   );
-// }
-
-// void main() async {
-//  runApp(Home());
-// }
 
 void main() async {
   await dotenv.load();

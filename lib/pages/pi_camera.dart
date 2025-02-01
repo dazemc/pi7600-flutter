@@ -32,7 +32,7 @@ class _VideoStreamState extends State<VideoStream> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Live Video"),
+        title: const Text("Camera"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -69,12 +69,9 @@ class _VideoStreamState extends State<VideoStream> {
                           );
                         }
                         //? Working for single frames
+                        print(snapshot.data);
                         return Image.memory(
-                          Uint8List.fromList(
-                            base64Decode(
-                              (snapshot.data.toString()),
-                            ),
-                          ),
+                          Uint8List.fromList(snapshot.data),
                           gaplessPlayback: true,
                           excludeFromSemantics: true,
                         );
